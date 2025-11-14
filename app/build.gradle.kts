@@ -7,25 +7,38 @@ plugins {
 }
 
 android {
-    namespace = "com.bandbbs.ebook"
+    namespace = "watch.bc.reader"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.bandbbs.ebook.plus"
+        applicationId = "watch.bc.reader"
         minSdk = 21
         targetSdk = 35
         versionCode = 40415
         versionName = "4.4.15.DEV"
     }
 
+    signingConfigs {
+        create("release") {
+            storeFile = file("sign/app-release.jks")
+            storePassword = System.getenv("STORE_PASSWORD") ?: "changeit"
+            keyAlias = System.getenv("KEY_ALIAS") ?: "watchbc"
+            keyPassword = System.getenv("KEY_PASSWORD") ?: "changeit"
+        }
+    }
+
     buildTypes {
         release {
+            signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+        }
+        debug {
+            signingConfig = signingConfigs.getByName("release")
         }
     }
     compileOptions {
@@ -58,8 +71,6 @@ dependencies {
     implementation("androidx.loader:loader:1.1.0")
     implementation("androidx.compose.material3:material3-window-size-class:1.3.2")
     implementation("com.github.albfernandez:juniversalchardet:2.4.0")
-    
-    
     implementation("io.coil-kt:coil-compose:2.5.0")
 
     val room_version = "2.6.1"
