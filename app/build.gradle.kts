@@ -1,4 +1,4 @@
-plugins {
+﻿plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.compose.compiler)
@@ -7,11 +7,11 @@ plugins {
 }
 
 android {
-    namespace = "watch.bc.reader"
+    namespace = "com.bandbbs.ebook"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "watch.bc.reader"
+        applicationId = "Watch.Bc.Reader"
         minSdk = 21
         targetSdk = 35
         versionCode = 40415
@@ -55,7 +55,7 @@ android {
 }
 
 dependencies {
-    implementation(files("./libs/xms-wearable-lib_1.4_release.aar"))?.let { implementation(it) }
+    implementation(files("libs/xms-wearable-lib_1.4_release.aar"))
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
     implementation("androidx.core:core-ktx:1.16.0")
@@ -78,3 +78,10 @@ dependencies {
     implementation("androidx.room:room-ktx:$room_version")
     ksp("androidx.room:room-compiler:$room_version")
 }
+
+
+
+
+
+
+

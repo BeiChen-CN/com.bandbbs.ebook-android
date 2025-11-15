@@ -154,102 +154,51 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun reconnect() {
         viewModelScope.launch {
-            _connectionState.update {
-                it.copy(
-                    statusText = "手环连接中",
-                    descriptionText = "请确保小米运动健康后台运行",
-                    isConnected = false
-                )
-            }
-            try {
-                withTimeout(3000L) {
-                    conn.destroy().await()
-                    val deviceName = conn.connect().await().replace(" ", "")
-
-                    val unsupportedDevices = listOf("小米手环8", "小米手环9")
-                    val isUnsupported = unsupportedDevices.any { deviceName.equals(it) }
-                    
-                    if (isUnsupported) {
-                        _connectionState.update {
-                            it.copy(
-                                statusText = "设备不受支持",
-                                descriptionText = "$deviceName 不受支持",
-                                isConnected = false
-                            )
-                        }
-                        _connectionErrorState.value = ConnectionErrorState(
-                            deviceName = deviceName,
-                            isUnsupportedDevice = true
-                        )
-                        return@withTimeout
-                    }
-                    
-                    conn.auth().await()
-                    try {
-                        if (!conn.getAppState().await()) {
-                            _connectionState.update {
-                                it.copy(
-                                    statusText = "弦电子书未安装",
-                                    descriptionText = "请在手环上安装小程序",
-                                    isConnected = false
-                                )
-                            }
-                            _connectionErrorState.value = ConnectionErrorState(
-                                deviceName = deviceName,
-                                isUnsupportedDevice = false
-                            )
+            _connectionState.update { it.copy(statusText = "手环连接中", descriptionText = "请确保小米运动健康后台运行", isConnected = false) }
+            var attempt = 0
+            while (attempt < 3) {
+                try {
+                    withTimeout(10000L) {
+                        conn.destroy().await()
+                        val deviceName = conn.connect().await().replace(" ", "")
+                        val unsupportedDevices = listOf("小米手环8", "小米手环9")
+                        val isUnsupported = unsupportedDevices.any { deviceName.equals(it) }
+                        if (isUnsupported) {
+                            _connectionState.update { it.copy(statusText = "设备不受支持", descriptionText = "$deviceName 不受支持", isConnected = false) }
+                            _connectionErrorState.value = ConnectionErrorState(deviceName = deviceName, isUnsupportedDevice = true)
                             return@withTimeout
                         }
-                    } catch (e: Exception) {
-                        _connectionState.update {
-                            it.copy(
-                                statusText = "弦电子书未安装",
-                                descriptionText = "请在手环上安装小程序",
-                                isConnected = false
-                            )
+                        conn.auth().await()
+                        val installed = try { conn.getAppState().await() } catch (_: Exception) { false }
+                        if (!installed) {
+                            _connectionState.update { it.copy(statusText = "应用未安装", descriptionText = "请在手环上安装 BcReader", isConnected = false) }
+                            _connectionErrorState.value = ConnectionErrorState(deviceName = deviceName, isUnsupportedDevice = false)
+                            return@withTimeout
                         }
-                        _connectionErrorState.value = ConnectionErrorState(
-                            deviceName = deviceName,
-                            isUnsupportedDevice = false
-                        )
-                        return@withTimeout
+                        conn.openApp().await()
+                        conn.registerListener().await()
+                        _connectionState.update { it.copy(statusText = "设备连接成功", descriptionText = "$deviceName 已连接", isConnected = true) }
                     }
-                    conn.openApp().await()
-                    conn.registerListener().await()
-                    _connectionState.update {
-                        it.copy(
-                            statusText = "设备连接成功",
-                            descriptionText = "$deviceName 已连接",
-                            isConnected = true
-                        )
+                    return@launch
+                } catch (e: TimeoutCancellationException) {
+                    Log.e("MainViewModel", "connect timeout")
+                    attempt++
+                    if (attempt >= 3) {
+                        _connectionState.update { it.copy(statusText = "手环连接失败", descriptionText = "连接超时", isConnected = false) }
+                        _connectionErrorState.value = ConnectionErrorState(deviceName = null, isUnsupportedDevice = false)
+                    } else {
+                        delay(500L)
+                    }
+                } catch (e: Exception) {
+                    Log.e("MainViewModel", "connect fail ${e.message}")
+                    attempt++
+                    if (attempt >= 3) {
+                        _connectionState.update { it.copy(statusText = "手环连接失败", descriptionText = e.message ?: "未知错误", isConnected = false) }
+                        _connectionErrorState.value = ConnectionErrorState(deviceName = null, isUnsupportedDevice = false)
+                    } else {
+                        delay(500L)
                     }
                 }
-            } catch (e: TimeoutCancellationException) {
-                Log.e("MainViewModel", "connect timeout")
-                _connectionState.update {
-                    it.copy(
-                        statusText = "手环连接失败",
-                        descriptionText = "连接超时",
-                        isConnected = false
-                    )
-                }
-                _connectionErrorState.value = ConnectionErrorState(
-                    deviceName = null,
-                    isUnsupportedDevice = false
-                )
-            } catch (e: Exception) {
-                Log.e("MainViewModel", "connect fail ${e.message}")
-                _connectionState.update {
-                    it.copy(
-                        statusText = "手环连接失败",
-                        descriptionText = e.message ?: "未知错误",
-                        isConnected = false
-                    )
-                }
-                _connectionErrorState.value = ConnectionErrorState(
-                    deviceName = null,
-                    isUnsupportedDevice = false
-                )
             }
         }
     }

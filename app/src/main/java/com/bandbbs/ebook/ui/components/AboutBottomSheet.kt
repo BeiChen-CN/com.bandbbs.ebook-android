@@ -1,4 +1,4 @@
-package com.bandbbs.ebook.ui.components
+﻿package com.bandbbs.ebook.ui.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -47,7 +47,7 @@ fun AboutBottomSheet() {
                     .padding(20.dp)
             ) {
                 Text(
-                    text = "弦电子书",
+                    text = "BcReader",
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onPrimaryContainer
@@ -89,7 +89,7 @@ fun AboutBottomSheet() {
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        "爅峫",
+                        "姜北尘,爅峫",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -109,19 +109,7 @@ fun AboutBottomSheet() {
                     )
                 }
                 
-                Column {
-                    Text(
-                        "QQ交流群",
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Medium
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        "1067415278",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                }
+        
                 
                 Column {
                     Text(
@@ -143,3 +131,4 @@ fun AboutBottomSheet() {
         Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.navigationBars))
     }
 }
+
